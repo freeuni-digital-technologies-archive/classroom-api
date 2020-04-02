@@ -1,0 +1,8 @@
+dist/
+node_modules/
+.vscode
+credentials.json
+token.json
+.env
+yarn.lock
+.nyc_output
