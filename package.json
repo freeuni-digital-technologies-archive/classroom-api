@@ -1,11 +1,14 @@
 {
   "name": "classroom-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "watch": "ts-mocha -w test/*test.ts --watch-files test/*test.ts,src/**/*.ts",
-    "coverage": "nyc ts-mocha test/*test.ts"
+    "build": "tsc",
+    "test": "ts-mocha test/*.test.ts",
+    "watch": "ts-mocha -w test/*.test.ts --watch-files test/*test.ts,src/**/*.ts",
+    "coverage": "nyc ts-mocha test/*.test.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",

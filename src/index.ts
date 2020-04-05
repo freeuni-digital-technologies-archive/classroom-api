@@ -1,11 +1,16 @@
-import ClassroomApi from './classroom-api'
+import { ClassroomApi } from './classroom-api'
 import { Submission } from './submission'
+import { getStudentById } from './students'
 
-function main() {
-    ClassroomApi.findClass('შესავალი ციფრულ ტექნოლოგიებში')
-        .then(classroom => classroom.getSubmissions('დავალება 1'))
-        .then(submissions => submissions.map(s => Submission.fromResponse(s)))
-        .then(e => console.log(e.slice(0, 20)))
+export * from './types'
+export { ClassroomApi } from './classroom-api'
+export { Submission } from './submission'
+
+
+export function getSubmissions(subject: string, homework: string): Promise<Submission[]> {
+    return ClassroomApi.findClass(subject)
+        .then(classroom => classroom.getSubmissions(homework))
+        .then(submissions => submissions
+            .filter(response => getStudentById(response.userId!))
+            .map(s => Submission.fromResponse(s)))
 }
-
-main()

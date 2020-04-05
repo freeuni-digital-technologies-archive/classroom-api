@@ -1,4 +1,4 @@
-import { google, GoogleApis, classroom_v1 } from 'googleapis'
+import { google, classroom_v1 } from 'googleapis'
 import auth from './auth'
 
 function listCourses(classroom: classroom_v1.Classroom)
@@ -18,7 +18,7 @@ function listCourses(classroom: classroom_v1.Classroom)
     })
 }
 
-export default class ClassroomApi {
+export class ClassroomApi {
     static async findClass(name: string) {
         const classroom = await auth()
             .then(auth => google.classroom({ version: 'v1', auth }))

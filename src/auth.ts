@@ -3,6 +3,9 @@ import { google } from 'googleapis'
 const fs = require('fs').promises;
 const readline = require('readline');
 
+const TOKEN_PATH = process.env.CLASSROOM_TOKEN_PATH || 'token.json'
+const CREDENTIALS_PATH = process.env.CLASSROOM_CREDENTIALS_PATH || 'credentials.json'
+
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/classroom.courses',
     'https://www.googleapis.com/auth/classroom.coursework.students',
@@ -12,10 +15,8 @@ const SCOPES = ['https://www.googleapis.com/auth/classroom.courses',
     'https://www.googleapis.com/auth/classroom.rosters'
 ];
 
-const TOKEN_PATH = 'token.json';
-
 export default function auth(): Promise<string> {
-    return fs.readFile('credentials.json')
+    return fs.readFile(CREDENTIALS_PATH)
         .then((content: string) =>
             authorize(JSON.parse(content)))
         .catch((err: Error) =>
