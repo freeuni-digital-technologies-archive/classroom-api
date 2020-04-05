@@ -3,7 +3,7 @@ import { getStudentById } from "./students";
 import { sortByDate } from "./utils";
 
 export class Submission {
-    static turnedIn(s: StudentSubmission | StateHistory) {
+    static turnedIn(s: any): boolean {
         return s.state == 'TURNED_IN'
     }
     static fromResponse(
@@ -36,13 +36,18 @@ export class Submission {
     }
     public attachment?: Attachment
     public timeStamp?: Date
+    // TODO create types package
+    public results: any[]
+    public incorrectFormat?: boolean
+    public crashed?: boolean
+    public check?: boolean
     constructor(
         public id: string,
         public emailId: string,
-        public state: string,
-        public late?: boolean
+        private state: string,
+        private late?: boolean
     ) {
-
+        this.results = []
     }
 
     public turnedIn() {
@@ -54,6 +59,57 @@ export class Submission {
     public setAttachment(a: Attachment, timeStamp: Date) {
         this.attachment = a
         this.timeStamp = timeStamp
+        this.checkFormat()
     }
 
+    public addResults(results: any[]): Submission {
+        this.results = this.results.concat(results)
+        return this
+    }
+    private correctTitle() {
+        const title = this.attachment!.title
+        return title.toLowerCase().includes(this.emailId + '.k')
+    }
+
+    private invalidCharacters() {
+        return this.attachment!.title.match(/[^\w\._\d]/g)
+    }
+
+    public submittedAfter(date: Date) {
+        return this.timeStamp!.getTime() > date.getTime()
+    }
+
+    public hasErrors(): boolean {
+        return this.results.find(e => e.error)
+    }
+
+    public passed(): boolean {
+        return this.results.length > 0 && this.results.filter(e => e.passed).length == this.results.length
+    }
+
+    public qualifies(): boolean {
+        return !this.crashed && this.onTime() && !this.incorrectFormat
+    }
+
+    public checkFormat(): Submission {
+        if (!this.correctTitle()) {
+            this.incorrectFormat = true
+            this.results.push({
+                error: true,
+                message: "submission title is incorrect",
+                details: `title needs to contain ${this.emailId + '.k'}`
+            })
+        }
+        const invalidChars = this.invalidCharacters()
+        if (invalidChars) {
+            this.incorrectFormat = true
+            const chars = Array.from(new Set(invalidChars.map(e => e.replace(' ', ' (space)'))))
+            this.results.push({
+                error: true,
+                message: "submission title is incorrect",
+                details: `title contains invalid characters. Only digits, numbers, underscore and '.' are allowed. Your submission contained: ${chars}`
+            })
+        }
+        return this
+    }
 }
