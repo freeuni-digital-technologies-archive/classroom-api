@@ -5,7 +5,7 @@ import { getStudentById } from './students'
 export * from './types'
 export { ClassroomApi } from './classroom-api'
 export { Submission } from './submission'
-
+export * from './students'
 
 export function getSubmissions(subject: string, homework: string): Promise<Submission[]> {
     return ClassroomApi.findClass(subject)

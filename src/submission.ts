@@ -1,4 +1,4 @@
-import { UserProfile, Attachment, StudentSubmission, StateHistory } from "./types";
+import { Attachment, StudentSubmission } from "./types";
 import { getStudentById } from "./students";
 import { sortByDate } from "./utils";
 
@@ -13,9 +13,10 @@ export class Submission {
             response.id!,
             getStudentById(response.userId!).emailId!,
             response.state!,
+            response.alternateLink!,
             response.late
         )
-        if (submission.onTime()) {
+        if (submission.turnedIn()) {
             const attachments = response.assignmentSubmission?.attachments
             const attachment = new Attachment(attachments![0].driveFile!)
             const timeStamp = Submission.getTimeStamp(response)
@@ -45,6 +46,7 @@ export class Submission {
         public id: string,
         public emailId: string,
         private state: string,
+        public alternateLink: string,
         private late?: boolean
     ) {
         this.results = []
@@ -72,10 +74,12 @@ export class Submission {
     }
 
     private invalidCharacters() {
-        return this.attachment!.title.match(/[^\w\._\d]/g)
+        return this.attachment!.title.match(/[^\w._\d]/g)
     }
 
     public submittedAfter(date: Date) {
+        if (!this.timeStamp)
+            return false
         return this.timeStamp!.getTime() > date.getTime()
     }
 

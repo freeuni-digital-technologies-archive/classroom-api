@@ -57,7 +57,7 @@ export class ClassroomApi {
                 if (filtered && filtered.length)
                     return filtered[0].id!
                 else
-                    throw "no such assignment found"
+                    throw name + ": no such assignment found"
             })
 
     getSubmissions = (name: string): Promise<classroom_v1.Schema$StudentSubmission[]> =>
