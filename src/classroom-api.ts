@@ -50,7 +50,7 @@ export class ClassroomApi {
         })
     }
 
-    private findAssignment = (name: string): Promise<string> =>
+    findAssignment = (name: string): Promise<string> =>
         this.listCourseWork()
             .then(courseWork => {
                 const filtered = courseWork.filter(c => c.title!.includes(name))
