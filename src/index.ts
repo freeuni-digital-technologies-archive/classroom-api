@@ -11,6 +11,6 @@ export function getSubmissions(subject: string, homework: string): Promise<Submi
     return ClassroomApi.findClass(subject)
         .then(classroom => classroom.getSubmissions(homework))
         .then(submissions => submissions
-            .filter(response => getStudentById(response.userId!))
+            .filter(response => response.id && response.userId && getStudentById(response.userId!))
             .map(s => Submission.fromResponse(s)))
 }

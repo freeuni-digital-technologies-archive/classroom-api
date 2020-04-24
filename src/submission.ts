@@ -16,7 +16,7 @@ export class Submission {
             response.alternateLink!,
             response.late
         )
-        if (submission.turnedIn()) {
+        if (submission.turnedIn() && response.assignmentSubmission?.attachments && response.assignmentSubmission?.attachments[0].driveFile) {
             const attachments = response.assignmentSubmission?.attachments
             const attachment = new Attachment(attachments![0].driveFile!)
             const timeStamp = Submission.getTimeStamp(response)
