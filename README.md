@@ -3,7 +3,7 @@
 wrapper for classroom in google library. modified from [this example](https://developers.google.com/classroom/quickstart/nodejs) 
 
 ## instructions
-Get `credentials.json` from google console or file from the example url (select web app). Save it in the project root directory.
+Get `credentials.json` from google console or file from the example url (**select web app**). Save it in the project root directory.
 
 For the first run, you'll need to follow the link and authorize the app.
 
@@ -24,7 +24,13 @@ getSubmissions('className', 'assignmentName')
     .then(submissions => console.log(submissions))
 
 // returns a list of Submissions (src/submissions.ts)
+// after that you can use submission.download() on individual submission
+
 ```
+
+### drive download
+When downloading multiple files, it's necessary to throttle the requests on your side, otherwise request limit error will be thrown.
+
 
 ### student list
 In order to save amount of requests for each individual student (email, etc.), the library expects `students.json` file in the root directory. For now you need to generate it manually. Create a file `script.js` in the root directory of project and paste the contents
