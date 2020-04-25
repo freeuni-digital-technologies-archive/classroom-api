@@ -1,5 +1,27 @@
-import { google, classroom_v1 } from 'googleapis'
-import auth from './auth'
+import {google, classroom_v1, drive_v3} from 'googleapis'
+import authenticate from './authenticate'
+
+export function downloadFile(drive: drive_v3.Drive, id: string)
+    : Promise<drive_v3.Schema$File> {
+    return new Promise((resolve, reject) => {
+        drive.files.get({
+            fileId: id,
+            alt: 'media'
+        }, (err, res) => {
+            if (err) {
+                console.log('Drive API returned an error :' + err)
+                reject(err)
+            }
+            resolve(res!.data)
+        })
+    })
+}
+
+export function createDrive(credentials?: string,
+                            token?: string): Promise<drive_v3.Drive> {
+    return authenticate(credentials, token)
+        .then(auth => google.drive({version: 'v3', auth}))
+}
 
 function listCourses(classroom: classroom_v1.Classroom)
     : Promise<classroom_v1.Schema$Course[]> {
@@ -20,8 +42,9 @@ function listCourses(classroom: classroom_v1.Classroom)
 
 export class ClassroomApi {
     static async findClass(name: string) {
-        const classroom = await auth()
-            .then(auth => google.classroom({ version: 'v1', auth }))
+        const auth = await authenticate()
+        const classroom = google.classroom({ version: 'v1', auth })
+        const drive = google.drive({version: 'v3', auth})
         return listCourses(classroom)
             .then(courses => {
                 const filtered = courses.filter(c => c.name == name)
@@ -30,15 +53,18 @@ export class ClassroomApi {
                 else
                     throw "no such course found"
             })
-            .then((id) => new ClassroomApi(id, classroom))
+            .then((id) => new ClassroomApi(id, classroom, drive))
     }
     constructor(
         private id: string,
         private classroom: classroom_v1.Classroom,
+        private drive: drive_v3.Drive
     ) {
-
     }
 
+    download(id: string) {
+        return downloadFile(this.drive, id)
+    }
     listCourseWork(): Promise<classroom_v1.Schema$CourseWork[]> {
         return new Promise((resolve, reject) => {
             this.classroom.courses.courseWork.list({

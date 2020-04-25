@@ -9,27 +9,28 @@ const CREDENTIALS_PATH = process.env.CLASSROOM_CREDENTIALS_PATH || 'credentials.
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/classroom.courses',
     'https://www.googleapis.com/auth/classroom.coursework.students',
-    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive.readonly',
     'https://www.googleapis.com/auth/classroom.profile.emails',
     'https://www.googleapis.com/auth/classroom.profile.photos',
     'https://www.googleapis.com/auth/classroom.rosters'
 ];
 
-export default function auth(): Promise<string> {
-    return fs.readFile(CREDENTIALS_PATH)
+export default function authenticate(credentials?: string,
+                                     token?: string): Promise<string> {
+    return fs.readFile(credentials || CREDENTIALS_PATH)
         .then((content: string) =>
-            authorize(JSON.parse(content)))
+            authorize(JSON.parse(content), token))
         .catch((err: Error) =>
             console.log('Error loading client secret file:', err)
         )
 }
 
-function authorize(credentials: any) {
+function authorize(credentials: any, tokenPath?: string) {
     const { client_secret, client_id, redirect_uris } = credentials.web;
     const oAuth2Client = new google.auth.OAuth2(
         client_id, client_secret, redirect_uris[0]);
 
-    return fs.readFile(TOKEN_PATH)
+    return fs.readFile(tokenPath || TOKEN_PATH)
         .then((token : string) => { oAuth2Client.setCredentials(JSON.parse(token)); return oAuth2Client })
         .catch(() => getNewToken(oAuth2Client))
 }
