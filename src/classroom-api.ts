@@ -1,5 +1,6 @@
 import {google, classroom_v1, drive_v3} from 'googleapis'
 import authenticate from './authenticate'
+import fs from "fs";
 
 export function downloadFile(drive: drive_v3.Drive, id: string)
     : Promise<drive_v3.Schema$File> {
@@ -16,7 +17,13 @@ export function downloadFile(drive: drive_v3.Drive, id: string)
         })
     })
 }
-
+export function saveFile(drive: drive_v3.Drive, id: string, path: string): Promise<string> {
+    return downloadFile(drive, id)
+        .then((contents: any) => {
+            fs.writeFileSync(path, contents)
+            return path
+        })
+}
 export function createDrive(credentials?: string,
                             token?: string): Promise<drive_v3.Drive> {
     return authenticate(credentials, token)
