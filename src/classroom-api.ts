@@ -2,8 +2,7 @@ import {google, classroom_v1, drive_v3} from 'googleapis'
 import authenticate from './authenticate'
 import fs from "fs";
 
-export function downloadFile(drive: drive_v3.Drive, id: string)
-    : Promise<drive_v3.Schema$File> {
+export function downloadFile(drive: drive_v3.Drive, id: string): Promise<any> {
     return new Promise((resolve, reject) => {
         drive.files.get({
             fileId: id,
@@ -17,6 +16,20 @@ export function downloadFile(drive: drive_v3.Drive, id: string)
         })
     })
 }
+
+export function downloadZip(drive: drive_v3.Drive, id: string, path: string): Promise<string> {
+    return new Promise(resolve => {
+        drive.files.get({
+            fileId: id,
+            alt: 'media'
+        }, {responseType: 'arraybuffer'}, (err, res) => {
+            const contents = res!.data
+            fs.writeFileSync(path, Buffer.from(contents))
+            resolve(path)
+        })
+    })
+}
+
 export function saveFile(drive: drive_v3.Drive, id: string, path: string): Promise<string> {
     return downloadFile(drive, id)
         .then((contents: any) => {
@@ -24,6 +37,7 @@ export function saveFile(drive: drive_v3.Drive, id: string, path: string): Promi
             return path
         })
 }
+
 export function createDrive(credentials?: string,
                             token?: string): Promise<drive_v3.Drive> {
     return authenticate(credentials, token)
@@ -50,7 +64,7 @@ function listCourses(classroom: classroom_v1.Classroom)
 export class ClassroomApi {
     static async findClass(name: string) {
         const auth = await authenticate()
-        const classroom = google.classroom({ version: 'v1', auth })
+        const classroom = google.classroom({version: 'v1', auth})
         const drive = google.drive({version: 'v3', auth})
         return listCourses(classroom)
             .then(courses => {
@@ -62,6 +76,7 @@ export class ClassroomApi {
             })
             .then((id) => new ClassroomApi(id, classroom, drive))
     }
+
     constructor(
         private id: string,
         private classroom: classroom_v1.Classroom,
@@ -72,6 +87,7 @@ export class ClassroomApi {
     download(id: string) {
         return downloadFile(this.drive, id)
     }
+
     listCourseWork(): Promise<classroom_v1.Schema$CourseWork[]> {
         return new Promise((resolve, reject) => {
             this.classroom.courses.courseWork.list({
@@ -106,14 +122,16 @@ export class ClassroomApi {
                     })
                 })
             )
+
     getStudentProfile(id: string): Promise<classroom_v1.Schema$UserProfile> {
         return new Promise((resolve, reject) => {
-            this.classroom.userProfiles.get({ userId: id }, (err, res) => {
+            this.classroom.userProfiles.get({userId: id}, (err, res) => {
                 if (err) reject(err)
                 resolve(res!.data)
             })
         })
     }
+
     getSubmissionStudents = (name: string): Promise<classroom_v1.Schema$UserProfile[]> =>
         this.getSubmissions(name)
             .then(submissions => submissions.map(s => s.userId!))

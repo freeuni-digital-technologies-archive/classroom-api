@@ -3,7 +3,7 @@ import { Submission } from './submission'
 import { getStudentById } from './students'
 
 export * from './types'
-export { ClassroomApi, downloadFile, createDrive, saveFile } from './classroom-api'
+export { ClassroomApi, downloadFile, downloadZip, createDrive, saveFile } from './classroom-api'
 export { Submission } from './submission'
 export * from './students'
 

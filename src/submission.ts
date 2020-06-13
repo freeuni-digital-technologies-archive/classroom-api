@@ -61,7 +61,7 @@ export class Submission {
     public setAttachment(a: Attachment, timeStamp: Date) {
         this.attachment = a
         this.timeStamp = timeStamp
-        this.checkFormat()
+        // this.checkFormat()
     }
 
     public addResults(results: any[]): Submission {
