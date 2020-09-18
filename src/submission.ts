@@ -42,6 +42,7 @@ export class Submission {
     public incorrectFormat?: boolean
     public crashed?: boolean
     public check?: boolean
+    public score?: number
     constructor(
         public id: string,
         public emailId: string,
