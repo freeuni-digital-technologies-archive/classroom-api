@@ -20,6 +20,7 @@ export function sendEmails(emails :Array<any>, interval :number) {
     })
 }
 
+// TODO fix these types
 export function sendEmail(to :string, subject :string, text :string, callback :any, attachments :any) {
     const mailOptions = {
         from: email,

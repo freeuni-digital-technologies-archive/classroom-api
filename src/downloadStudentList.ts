@@ -2,8 +2,18 @@ import { ClassroomApi } from './classroom-api'
 import { UserProfile } from './types'
 import yargs from 'yargs'
 const argv = yargs.options({
-    p: {type:'string', default: './'},
-    c: {type:'string', demandOption: true}
+    p: {
+        alias:'path',
+        describe: 'directory to store students.json',
+        type:'string', 
+        default: './', 
+    },
+    c: {
+        alias:'class',
+        describe: 'class name',
+        type:'string', 
+        demandOption: true
+    }
 }).argv
 import fs from 'fs'
 const translit = require('translitit-latin-to-mkhedruli-georgian')

@@ -33,20 +33,13 @@ When downloading multiple files, it's necessary to throttle the requests on your
 
 
 ### student list
-In order to save amount of requests for each individual student (email, etc.), the library expects `students.json` file in the root directory. For now you need to generate it manually. Create a file `script.js` in the root directory of project and paste the contents
+In order to save amount of requests for each individual student (email, etc.), the library expects `students.json` file in the root directory. You can generate it using `yarn getlist`:
+`yarn getlist -c "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა"`
 
-```javascript
-const className = '' // fill this
-const { downloadStudentList } = require('./lib/downloadStudentList')
-const fs = require('fs')
-downloadStudentList(className).then(profiles => fs.writeFileSync('students.json', JSON.stringify(profiles, null, '\t')))
-
-```
-
-Then, run
-
-```sh
-yarn build && node script.js
+full list of aguments:
+```bash
+  -p, --path     directory to store students.json       [string] [default: "./"]
+  -c, --class    class name                                  [string] [required]
 ```
 
 ## API
@@ -61,3 +54,6 @@ ClassroomApi
             .then(classroom => classroom.listCourseWork())
             .then(submissions => console.log(submissions))
 ```
+
+###Mailer 
+You are also free to use mailer.ts exported functions `sendEmails` and `sendEmail`
