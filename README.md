@@ -55,5 +55,5 @@ ClassroomApi
             .then(submissions => console.log(submissions))
 ```
 
-###Mailer 
+### Mailer 
 You are also free to use mailer.ts exported functions `sendEmails` and `sendEmail`
