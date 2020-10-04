@@ -34,7 +34,11 @@ When downloading multiple files, it's necessary to throttle the requests on your
 
 ### student list
 In order to save amount of requests for each individual student (email, etc.), the library expects `students.json` file in the root directory. You can generate it using `yarn getlist`:
-`yarn getlist -c "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა"`
+
+example:
+```bash 
+yarn getlist -c "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა"
+```
 
 full list of aguments:
 ```bash
