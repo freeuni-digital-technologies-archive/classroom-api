@@ -6,6 +6,7 @@ export * from './types'
 export { ClassroomApi, downloadFile, downloadZip, createDrive, saveFile } from './classroom-api'
 export { Submission } from './submission'
 export * from './students'
+export * from './mailer'
 
 export function getSubmissions(subject: string, homework: string): Promise<Submission[]> {
     return ClassroomApi.findClass(subject)
