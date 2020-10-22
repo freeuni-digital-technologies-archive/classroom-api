@@ -46,6 +46,21 @@ full list of aguments:
   -c, --class    class name                                  [string] [required]
 ```
 
+### Download student work for a homework
+You can use `yarn download` command to download all the student work for a specific homework:
+
+example:
+```bash 
+yarn getlist --class "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა" --path './myHWdir' --hw 'დავალება 1' 
+```
+
+full list of aguments:
+```bash
+  -c, --class    class name                                  [string] [required]
+  -h, --hw       name of homework on the classroom           [string] [required]
+  -p, --path     directory to store homework                 [string] [required]
+```
+
 ## API
 You can also run the functions from `src/classroom-api.ts` individually. Easiest way is to edit the `test/classroom-api.test.ts` file and run it with `yarn test`
 ```javascript
