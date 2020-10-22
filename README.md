@@ -49,16 +49,19 @@ full list of aguments:
 ### Download student work for a homework
 You can use `yarn download` command to download all the student work for a specific homework:
 
-example:
+examples:
 ```bash 
-yarn getlist --class "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა" --path './myHWdir' --hw 'დავალება 1' 
+yarn download --class "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა" --path './myHWdir' --hw 'დავალება 1' # ./myHWdir/code.c
+yarn download -d -c "შესავალი ციფრულ ტექნოლოგიებში 2020 შემოდგომა" -p './myHWdir' -h 'დავალება 1' # ./myHWdir/mailprefix/code.c
 ```
+
 
 full list of aguments:
 ```bash
   -c, --class    class name                                  [string] [required]
   -h, --hw       name of homework on the classroom           [string] [required]
   -p, --path     directory to store homework                 [string] [required]
+  -d, --subdirs  Create separate subdirectories for each student       [boolean]
 ```
 
 ## API
