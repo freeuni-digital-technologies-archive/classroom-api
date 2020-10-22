@@ -41,7 +41,7 @@ yarn getlist -c "შესავალი ციფრულ ტექნოლ�
 ```
 
 full list of aguments:
-```bash
+```
   -p, --path     directory to store students.json       [string] [default: "./"]
   -c, --class    class name                                  [string] [required]
 ```
@@ -57,7 +57,7 @@ yarn download -d -c "შესავალი ციფრულ ტექნო
 
 
 full list of aguments:
-```bash
+```
   -c, --class    class name                                  [string] [required]
   -h, --hw       name of homework on the classroom           [string] [required]
   -p, --path     directory to store homework                 [string] [required]
