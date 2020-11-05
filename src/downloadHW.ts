@@ -18,7 +18,7 @@ function downloadAtInterval(pathToStore:string, submission: Submission, drive: D
         try {
             fs.mkdirSync(dir)
         } catch (whatever) { 
-            console.log('Could not create dir, probably already exists')
+            throw new Error('Could not create directory. Check that provided folder exists')
         }
     }
     else {
@@ -37,52 +37,60 @@ function downloadAtInterval(pathToStore:string, submission: Submission, drive: D
     })
 }
 
-export async function downloadAll(pathToStore:string, className:string, hw:string, createDirs:boolean){
+export async function downloadAll(pathToStore:string, className:string, hw:string, createDirs:boolean, allowLates:boolean){
     const drive = await createDrive()
     console.log(pathToStore, className, hw)
     getSubmissions(className, hw)
         .then(s => log(s, `downloading ${s.filter(e => e.onTime()).length}`))
         .then(submissions => submissions.filter(s=>s.attachment!=undefined)
-        .map((s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs)))
+            .filter(s=>allowLates || s.onTime())
+            .map((s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs)))
+        .catch((e:Error)=>{
+            console.log(e.message)
+        })
 }
 
 
 //check if called from cli
 if (require.main === module) {
     const argv = yargs.options({
-        c: {
-            alias:'class',
+        class: {
+            alias:'c',
             describe: 'class name',
             type:'string', 
             demandOption: true
         },
-        h: {
-            alias:'hw',
+        hw: {
+            alias:'h',
             describe: 'name of homework on the classroom',
             type:'string', 
             demandOption: true
         },
-        p: {
-            alias:'path',
+        path: {
+            alias:'p',
             describe: 'directory to store homework',
             type:'string', 
             demandOption: true
         },
-        d: {
-            alias:'subdirs',
+        subdirs: {
+            alias:'d',
             describe: 'Create separate subdirectories for each student',
             type:'boolean'
         },
+        lates: {
+            alias:'l',
+            describe: 'download late submissions as well',
+            type:'boolean'
+        }
     }).argv
 
     async function main(){
-        let pathToStore = argv.p
-        let className = argv.c
-        let hw = argv.h
-        let createDirs = argv.d
-        if(createDirs == undefined )
-            createDirs = false
-        await downloadAll(pathToStore, className, hw, createDirs)   
+        let pathToStore = argv.path
+        let className = argv.class
+        let hw = argv.hw
+        let createDirs = argv.subdirs || false
+        let allowLates = argv.lates || false
+        await downloadAll(pathToStore, className, hw, createDirs, allowLates)   
     }
     main()
 }

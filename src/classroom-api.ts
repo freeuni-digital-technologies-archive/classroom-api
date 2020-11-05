@@ -25,7 +25,7 @@ export function saveFile(drive: drive_v3.Drive, id: string, path: string): Promi
     return downloadFile(drive, id)
         .then((dataStream: any) => {
             return new Promise((resolve, reject) => {
-                console.log(`writing to ${path}`);
+                // console.log(`writing to ${path}`);
                 const dest = fs.createWriteStream(path);
                 dataStream
                   .on('end', () => {
