@@ -5,7 +5,48 @@ import { Drive } from './types'
 import { saveFile,createDrive } from './classroom-api'
 import fs from 'fs'
 
+import unzipper from 'unzipper'
+import pathModule from 'path'
 import yargs from 'yargs' //for cli
+
+function unzipSubmission(submission: Submission, path: string): Promise<string> {
+    const dir = pathModule.dirname(path)
+    console.log('path:' + path)
+    console.log('dir:' + dir)
+    // try {
+    //     fs.mkdirSync(dir)
+    // } catch (w) {
+    //     throw new Error('Couldn\'t create folder for zip')
+    // }
+    return fs.createReadStream(path)
+        .pipe(unzipper.Extract({path: dir}))
+        .promise()
+        .then(() => {
+            console.log('exctracted: ' + path)
+            return dir
+        })
+}
+
+// function findRootFile(dir: string): string {
+//     let p = dir
+//     let files = fs.readdirSync(p)
+//     let tries = 0
+//     while (!files.includes('index.html')) {
+//         if (tries > 3) {
+//             throw "homework files not found"
+//         }
+//         try {
+//             p = `${p}/${files[0]}`
+//             files = fs.readdirSync(p)
+//         } catch (e) {
+//             throw "file with unsupported format: " + files[0]
+//         }
+
+//         tries++
+
+//     }
+//     return p
+// }
 
 function downloadAtInterval(pathToStore:string, submission: Submission, drive: Drive,  index: number, createDirs:boolean): Promise<string> {
     const attachment = submission.attachment!
@@ -37,14 +78,23 @@ function downloadAtInterval(pathToStore:string, submission: Submission, drive: D
     })
 }
 
-export async function downloadAll(pathToStore:string, className:string, hw:string, createDirs:boolean, allowLates:boolean){
+// each promise eventually returns a name of downloaded file
+export async function downloadAll(pathToStore:string, className:string, hw:string, createDirs:boolean, allowLates:boolean, autoExtract:boolean){
     const drive = await createDrive()
     console.log(pathToStore, className, hw)
     getSubmissions(className, hw)
         .then(s => log(s, `downloading ${s.filter(e => e.onTime()).length}`))
-        .then(submissions => submissions.filter(s=>s.attachment!=undefined)
-            .filter(s=>allowLates || s.onTime())
-            .map((s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs)))
+        .then(submissions => submissions.filter(s=>s.attachment!=undefined))
+        .then(submissions => submissions.filter(s=>allowLates || s.onTime()))
+        .then(submissions => submissions.map(
+            (s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs)
+                        .then(newPath => {
+                            if(pathModule.extname(newPath)=='.zip' && autoExtract)
+                                return unzipSubmission(s, newPath)
+                            else 
+                                return newPath
+                        })
+        ))
         .catch((e:Error)=>{
             console.log(e.message)
         })
@@ -81,6 +131,11 @@ if (require.main === module) {
             alias:'l',
             describe: 'download late submissions as well',
             type:'boolean'
+        },
+        autoextract: {
+            alias:'ae',
+            describe: 'automatically extract all files in a zip in the same folder.',
+            type:'boolean'
         }
     }).argv
 
@@ -90,7 +145,8 @@ if (require.main === module) {
         let hw = argv.hw
         let createDirs = argv.subdirs || false
         let allowLates = argv.lates || false
-        await downloadAll(pathToStore, className, hw, createDirs, allowLates)   
+        let autoExtract = argv.autoextract || false
+        await downloadAll(pathToStore, className, hw, createDirs, allowLates, autoExtract)
     }
     main()
 }

@@ -30,7 +30,9 @@ export function saveFile(drive: drive_v3.Drive, id: string, path: string): Promi
                 dataStream
                   .on('end', () => {
                     console.log('Done downloading file: ' + path);
-                    resolve(path);
+                    dest.close();
+                    setTimeout(()=>resolve(path), 100) // weird erorrs occur without this timeout
+                    // resolve(path);
                   })
                   .on('error', (err: any) => {
                     console.error('Error downloading file path=' + path + ' id=' + id);
