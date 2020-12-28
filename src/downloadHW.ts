@@ -11,22 +11,18 @@ import yargs from 'yargs' //for cli
 
 function unzipSubmission(submission: Submission, path: string): Promise<string> {
     const dir = pathModule.dirname(path)
-    console.log('path:' + path)
-    console.log('dir:' + dir)
-    // try {
-    //     fs.mkdirSync(dir)
-    // } catch (w) {
-    //     throw new Error('Couldn\'t create folder for zip')
-    // }
+    // console.log('path:' + path)
+    // console.log('dir:' + dir)
     return fs.createReadStream(path)
         .pipe(unzipper.Extract({path: dir}))
         .promise()
         .then(() => {
-            console.log('exctracted: ' + path)
+            console.log('Extracted: ' + path)
             return dir
         })
 }
 
+// may be useful someday 
 // function findRootFile(dir: string): string {
 //     let p = dir
 //     let files = fs.readdirSync(p)
@@ -48,26 +44,37 @@ function unzipSubmission(submission: Submission, path: string): Promise<string> 
 //     return p
 // }
 
-function downloadAtInterval(pathToStore:string, submission: Submission, drive: Drive,  index: number, createDirs:boolean): Promise<string> {
+
+function downloadAtInterval(pathToStore:string, 
+                                submission: Submission, 
+                                drive: Drive,  
+                                index: number, 
+                                createDirs:boolean, 
+                                skipExisting:boolean): Promise<string> {
     const attachment = submission.attachment!
     const fileName = attachment.title
     const emailId = submission.emailId
     const id = attachment.id
     var dir = ''
-    if(createDirs){
+    if(createDirs)
         dir = `${pathToStore}/${emailId}`
-        try {
-            fs.mkdirSync(dir)
-        } catch (whatever) { 
-            throw new Error('Could not create directory. Check that provided folder exists')
-        }
-    }
-    else {
+    else 
         dir = `${pathToStore}`
-    }
-    // console.log(dir)
     const path = `${dir}/${fileName}`
     
+    if(skipExisting && fs.existsSync(path)){
+        console.log('file already exists not downloading again ...')
+        return Promise.resolve(path)
+    }
+
+    if(createDirs && !fs.existsSync(dir)){
+        try {
+            fs.mkdirSync(dir)
+        } catch (whatever) {
+            console.log("student folder couldn't be created.")
+            return Promise.reject("student folder couldn't be created.")
+        }         
+    }
 
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -78,26 +85,36 @@ function downloadAtInterval(pathToStore:string, submission: Submission, drive: D
     })
 }
 
-// each promise eventually returns a name of downloaded file
-export async function downloadAll(pathToStore:string, className:string, hw:string, createDirs:boolean, allowLates:boolean, autoExtract:boolean){
+export async function downloadAll(pathToStore:string, 
+                                    className:string, 
+                                    hw:string, 
+                                    createDirs:boolean, 
+                                    allowLates:boolean, 
+                                    autoExtract:boolean, 
+                                    skipExisting:boolean): Promise<string[]>{
     const drive = await createDrive()
     console.log(pathToStore, className, hw)
-    getSubmissions(className, hw)
-        .then(s => log(s, `downloading ${s.filter(e => e.onTime()).length}`))
-        .then(submissions => submissions.filter(s=>s.attachment!=undefined))
+    if (!fs.existsSync(pathToStore)) {
+        console.log('Provided folder does not exists')
+        process.exit(1)
+    }
+
+
+    return getSubmissions(className, hw)
+        .then(submissions => log(submissions, `downloading ${submissions.filter(s => s.onTime()).length}`))
+        .then(submissions => submissions.filter(s=>s.attachment!=undefined)) 
         .then(submissions => submissions.filter(s=>allowLates || s.onTime()))
         .then(submissions => submissions.map(
-            (s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs)
+            (s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs, skipExisting)
                         .then(newPath => {
                             if(pathModule.extname(newPath)=='.zip' && autoExtract)
                                 return unzipSubmission(s, newPath)
                             else 
                                 return newPath
-                        })
+                        }, ()=>{return undefined})
         ))
-        .catch((e:Error)=>{
-            console.log(e.message)
-        })
+        .then(pathPromises => Promise.all(pathPromises))
+        .then(downloadedFilePaths => downloadedFilePaths.filter((p):p is string =>(p !== undefined)))
 }
 
 
@@ -134,9 +151,14 @@ if (require.main === module) {
         },
         autoextract: {
             alias:'ae',
-            describe: 'automatically extract all files in a zip in the same folder.',
+            describe: 'automatically extract all files in a zip in the same folder',
             type:'boolean'
-        }
+        },
+        skipExisting: {
+            alias:'s',
+            describe: 'skip downloading files that already exist',
+            type:'boolean'
+        },
     }).argv
 
     async function main(){
@@ -146,7 +168,9 @@ if (require.main === module) {
         let createDirs = argv.subdirs || false
         let allowLates = argv.lates || false
         let autoExtract = argv.autoextract || false
-        await downloadAll(pathToStore, className, hw, createDirs, allowLates, autoExtract)
+        let skipExisting = argv.skipExisting || false
+        
+        await downloadAll(pathToStore, className, hw, createDirs, allowLates, autoExtract, skipExisting)
     }
     main()
 }
