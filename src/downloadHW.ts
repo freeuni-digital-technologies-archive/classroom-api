@@ -77,11 +77,16 @@ function downloadAtInterval(pathToStore:string,
         }         
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         setTimeout(() => {
             console.log(`${emailId}: downloading`)
             saveFile(drive, id, path)
                 .then(() => resolve(path))
+                .catch((e:Error) => {
+                    console.log(e.message)
+                    console.log('skipping because of error')
+                    reject(e.message)
+                })
         }, (index) * 200)
     })
 }
