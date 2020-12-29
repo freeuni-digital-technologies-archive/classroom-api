@@ -3,6 +3,7 @@ import { log } from './utils'
 import { Submission } from './submission'
 import { Drive } from './types'
 import { saveFile,createDrive } from './classroom-api'
+import { getStudentByEmail } from "./students";
 import fs from 'fs'
 
 import unzipper from 'unzipper'
@@ -85,25 +86,31 @@ function downloadAtInterval(pathToStore:string,
     })
 }
 
-export async function downloadAll(pathToStore:string, 
+async function downloadWithFilter(pathToStore:string, 
                                     className:string, 
                                     hw:string, 
                                     createDirs:boolean, 
                                     allowLates:boolean, 
                                     autoExtract:boolean, 
-                                    skipExisting:boolean): Promise<string[]>{
+                                    skipExisting:boolean, 
+                                    submissionFilter:(s: Submission) => boolean): Promise<string[]>{
     const drive = await createDrive()
     console.log(pathToStore, className, hw)
     if (!fs.existsSync(pathToStore)) {
-        console.log('Provided folder does not exists')
-        process.exit(1)
+        try {
+            fs.mkdirSync(pathToStore)
+        } catch (whatever) {
+            console.log("Couldn't create folder for output")
+            process.exit(1)
+        } 
     }
 
 
     return getSubmissions(className, hw)
-        .then(submissions => log(submissions, `downloading ${submissions.filter(s => s.onTime()).length}`))
         .then(submissions => submissions.filter(s=>s.attachment!=undefined)) 
+        .then(submissions => submissions.filter(submissionFilter))
         .then(submissions => submissions.filter(s=>allowLates || s.onTime()))
+        .then(submissions => log(submissions, `downloading ${submissions.filter(s => s.onTime()).length}`))
         .then(submissions => submissions.map(
             (s, i) => downloadAtInterval(pathToStore, s, drive, i, createDirs, skipExisting)
                         .then(newPath => {
@@ -115,6 +122,28 @@ export async function downloadAll(pathToStore:string,
         ))
         .then(pathPromises => Promise.all(pathPromises))
         .then(downloadedFilePaths => downloadedFilePaths.filter((p):p is string =>(p !== undefined)))
+}
+
+export async function downloadAll(pathToStore:string, 
+                                    className:string, 
+                                    hw:string, 
+                                    createDirs:boolean, 
+                                    allowLates:boolean, 
+                                    autoExtract:boolean, 
+                                    skipExisting:boolean): Promise<string[]>{
+    return downloadWithFilter(pathToStore, className, hw, createDirs, allowLates, autoExtract, skipExisting, (s:Submission)=>true)
+}
+
+export async function downloadSome(pathToStore:string, 
+                                    className:string, 
+                                    hw:string,
+                                    allowedPrefixes:string[],
+                                    createDirs:boolean, 
+                                    allowLates:boolean, 
+                                    autoExtract:boolean, 
+                                    skipExisting:boolean): Promise<string[]>{
+
+    return downloadWithFilter(pathToStore, className, hw, createDirs, allowLates, autoExtract, skipExisting, (s:Submission)=>(allowedPrefixes.includes(s.emailId)))
 }
 
 
@@ -156,9 +185,13 @@ if (require.main === module) {
         },
         skipExisting: {
             alias:'s',
-            describe: 'skip downloading files that already exist',
+            describe: 'skip downloading files that already exist\n',
             type:'boolean'
         },
+        students: {
+            describe: 'specific list of mail prefixes to download\n if not specified script will download all homeworks',
+            type:'string'
+        }
     }).argv
 
     async function main(){
@@ -170,7 +203,21 @@ if (require.main === module) {
         let autoExtract = argv.autoextract || false
         let skipExisting = argv.skipExisting || false
         
-        await downloadAll(pathToStore, className, hw, createDirs, allowLates, autoExtract, skipExisting)
+        if(argv.students){
+            let listOfPrefixes = argv.students.split(',')
+            console.log('download only for:')
+            for(const id of listOfPrefixes) {
+                console.log(id)
+                if(!getStudentByEmail(id)){
+                    console.log(`student ${id} is not in students.json. please create students.json or remove this student from list`);
+                    process.exit(1)
+                }
+            }
+            await downloadSome(pathToStore, className, hw, listOfPrefixes, createDirs, allowLates, autoExtract, skipExisting)    
+        } else {
+            await downloadAll(pathToStore, className, hw, createDirs, allowLates, autoExtract, skipExisting)    
+        }
+        
     }
     main()
 }
