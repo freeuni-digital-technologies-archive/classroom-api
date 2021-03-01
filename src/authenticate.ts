@@ -9,10 +9,10 @@ const CREDENTIALS_PATH = process.env.CLASSROOM_CREDENTIALS_PATH || 'credentials.
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/classroom.courses',
     'https://www.googleapis.com/auth/classroom.coursework.students',
-    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/classroom.profile.emails',
     'https://www.googleapis.com/auth/classroom.profile.photos',
-    'https://www.googleapis.com/auth/classroom.rosters'
+    'https://www.googleapis.com/auth/classroom.rosters',
 ];
 
 export default function authenticate(credentials?: string,
@@ -26,7 +26,7 @@ export default function authenticate(credentials?: string,
 }
 
 function authorize(credentials: any, tokenPath?: string) {
-    const { client_secret, client_id, redirect_uris } = credentials.web;
+    const {client_secret, client_id, redirect_uris} = credentials.installed;
     const oAuth2Client = new google.auth.OAuth2(
         client_id, client_secret, redirect_uris[0]);
 
