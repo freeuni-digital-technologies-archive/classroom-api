@@ -69,7 +69,12 @@ const replace = [
     ['ავტ', 'ავთ'],
     ['ტამაზ', 'თამაზ'],
     ['ნატია', 'ნათია'],
-    ['დაჭი', 'დაჩი']
+    ['დაჭი', 'დაჩი'],
+    ['არჭილ', 'არჩილ'],
+    ['ტენგიზი', 'თენგიზ'],
+    ['ბეკა', 'ბექა'],
+    ['ტაზო', 'თაზო'],
+    ['მატე', 'მათე'],
 ]
 export function downloadStudentList(className: string): Promise<UserProfile[]> {
     return getStudentList(className)
