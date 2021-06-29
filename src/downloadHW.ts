@@ -46,7 +46,7 @@ function unzipSubmission(submission: Submission, path: string): Promise<string> 
 // }
 
 
-function downloadAtInterval(pathToStore:string, 
+export function downloadAtInterval(pathToStore:string, 
                                 submission: Submission, 
                                 drive: Drive,  
                                 index: number, 
