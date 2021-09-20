@@ -7,7 +7,7 @@ export function downloadFile(drive: drive_v3.Drive, id: string): Promise<any> {
         drive.files.get({
             fileId: id,
             alt: 'media'
-        }, (err, res) => {
+        }, {responseType: 'stream'}, (err, res) => {
             if (err) {
                 console.log('Drive API returned an error :' + err)
                 reject(err)
@@ -18,23 +18,28 @@ export function downloadFile(drive: drive_v3.Drive, id: string): Promise<any> {
 }
 
 export function downloadZip(drive: drive_v3.Drive, id: string, path: string): Promise<string> {
-    return new Promise(resolve => {
-        drive.files.get({
-            fileId: id,
-            alt: 'media'
-        }, {responseType: 'arraybuffer'}, (err, res) => {
-            const contents = res!.data
-            fs.writeFileSync(path, Buffer.from(contents))
-            resolve(path)
-        })
-    })
+    return saveFile(drive, id, path)
 }
 
 export function saveFile(drive: drive_v3.Drive, id: string, path: string): Promise<string> {
     return downloadFile(drive, id)
-        .then((contents: any) => {
-            fs.writeFileSync(path, contents)
-            return path
+        .then((dataStream: any) => {
+            return new Promise((resolve, reject) => {
+                // console.log(`writing to ${path}`);
+                const dest = fs.createWriteStream(path);
+                dataStream
+                  .on('end', () => {
+                    console.log('Done downloading file: ' + path);
+                    dest.close();
+                    setTimeout(()=>resolve(path), 100) // weird erorrs occur without this timeout
+                    // resolve(path);
+                  })
+                  .on('error', (err: any) => {
+                    console.error('Error downloading file path=' + path + ' id=' + id);
+                    reject(err);
+                  })
+                  .pipe(dest); // pipe to write stream
+            });
         })
 }
 

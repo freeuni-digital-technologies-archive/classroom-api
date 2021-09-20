@@ -7,6 +7,8 @@ export { ClassroomApi, downloadFile, downloadZip, createDrive, saveFile } from '
 export { Submission } from './submission'
 export * from './students'
 export * from './mailer'
+export { downloadAll, downloadSome, downloadAtInterval } from './downloadHW'
+export { default as authenticate } from './authenticate'
 
 export function getSubmissions(subject: string, homework: string): Promise<Submission[]> {
     return ClassroomApi.findClass(subject)
