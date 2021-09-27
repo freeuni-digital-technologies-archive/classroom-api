@@ -93,13 +93,13 @@ export class ClassroomApi {
         return downloadFile(this.drive, id)
     }
 
-    listCourseWork(): Promise<classroom_v1.Schema$CourseWork[]> {
+    async listCourseWork(): Promise<classroom_v1.Schema$CourseWork[]> {
         return new Promise((resolve, reject) => {
             this.classroom.courses.courseWork.list({
                 courseId: this.id
             }, (err, res) => {
                 if (err) reject('The API returned an error: ' + err);
-                resolve(res!.data.courseWork)
+                resolve(res!.data.courseWork!)
             })
         })
     }
@@ -123,7 +123,7 @@ export class ClassroomApi {
                         courseId: this.id,
                     }, (err, res) => {
                         if (err) reject(err)
-                        resolve(res!.data.studentSubmissions)
+                        resolve(res!.data.studentSubmissions!)
                     })
                 })
             )

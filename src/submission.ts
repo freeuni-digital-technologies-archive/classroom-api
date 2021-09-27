@@ -11,7 +11,7 @@ export class Submission {
     ) {
         const submission = new Submission(
             response.id!,
-            getStudentById(response.userId!).emailId!,
+            getStudentById(response.userId!)!.emailId!, // we know for sure
             response.state!,
             response.alternateLink!,
             response.late
