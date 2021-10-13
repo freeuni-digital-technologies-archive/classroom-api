@@ -63,7 +63,7 @@ const replace = [
 	['ბეკა', 'ბექა'],
 	['ტაზო', 'თაზო'],
 	['მატე', 'მათე'],
-	['ელიზაბეთ', 'ელიზაბედ']
+	['ელიზაბეთ', 'ელისაბედ']
 ]
 
 export async function downloadStudentList(className: string): Promise<UserProfile[]> {
